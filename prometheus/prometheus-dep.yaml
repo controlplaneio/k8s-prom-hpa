@@ -1,45 +1,33 @@
----
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: prometheus
+  name: prometheus-deployment
   namespace: monitoring
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: prometheus
   template:
     metadata:
       labels:
-        app: prometheus
-      annotations:
-        prometheus.io/scrape: 'false'
+        app: prometheus-server
     spec:
-      serviceAccountName: prometheus
       containers:
-      - name: prometheus
-        image: prom/prometheus:v2.1.0
-        imagePullPolicy: Always
-        command:
-          - prometheus
-          - --config.file=/etc/prometheus/prometheus.yml
-          - --storage.tsdb.retention=1h
-        ports:
-        - containerPort: 9090
-          protocol: TCP
-        resources:
-          limits:
-            memory: 2Gi
-        volumeMounts:
-        - mountPath: /etc/prometheus/prometheus.yml
-          name: prometheus-config
-          subPath: prometheus.yml
+        - name: prometheus
+          image: prom/prometheus:v2.12.0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus/"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume
+              mountPath: /prometheus/
       volumes:
-        - name: prometheus-config
+        - name: prometheus-config-volume
           configMap:
-            name: prometheus-config
-            items:
-              - key: prometheus.yml
-                path: prometheus.yml
-                mode: 0644
+            defaultMode: 420
+            name: prometheus-server-conf
+
+        - name: prometheus-storage-volume
+          emptyDir: {}

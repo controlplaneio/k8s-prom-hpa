@@ -1,5 +1,5 @@
 ---
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: podinfo
@@ -11,7 +11,7 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Pods
-    pods:
-      metricName: http_requests
-      targetAverageValue: 10
+    - type: Pods
+      pods:
+        metricName: http_requests
+        targetAverageValue: 10
